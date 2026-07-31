@@ -1,11 +1,9 @@
-
 import os
 import random
 import logging
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-import asyncio
 
 # Enable logging
 logging.basicConfig(
@@ -16,172 +14,43 @@ logger = logging.getLogger(__name__)
 
 # ==================== SELF-CONTAINED NEWS DATABASE ====================
 class SportsNewsDB:
-    """No API required - self-contained news database"""
-    
     def __init__(self):
         self.news = {
             'cricket': [
-                {
-                    'title': 'India Wins Test Series Against Australia',
-                    'description': 'Team India clinched a historic test series victory against Australia at home by 2-1.',
-                    'category': 'Cricket',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Sports Desk'
-                },
-                {
-                    'title': 'Virat Kohli Returns to Form with Century',
-                    'description': 'Star batsman Virat Kohli scored his 76th international century in the recent match against England.',
-                    'category': 'Cricket',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Cricket News'
-                },
-                {
-                    'title': 'IPL 2026: Two New Teams Announced',
-                    'description': 'Two new franchises have been added to the Indian Premier League for the upcoming season.',
-                    'category': 'Cricket',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'IPL Official'
-                },
-                {
-                    'title': 'Rohit Sharma Becomes Fastest to 10K ODI Runs',
-                    'description': 'Indian captain achieved this milestone in just 205 innings, breaking several records.',
-                    'category': 'Cricket',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'ICC'
-                },
-                {
-                    'title': 'Jasprit Bumrah Returns to Bowling',
-                    'description': 'Star pacer Jasprit Bumrah makes a strong comeback after injury in the practice match.',
-                    'category': 'Cricket',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Cricket Today'
-                }
+                {'title': 'India Wins Test Series Against Australia', 'description': 'Team India clinched a historic test series victory against Australia at home by 2-1.', 'category': 'Cricket', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Sports Desk'},
+                {'title': 'Virat Kohli Returns to Form with Century', 'description': 'Star batsman Virat Kohli scored his 76th international century.', 'category': 'Cricket', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Cricket News'},
+                {'title': 'IPL 2026: Two New Teams Announced', 'description': 'Two new franchises have been added to the Indian Premier League.', 'category': 'Cricket', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'IPL Official'},
+                {'title': 'Rohit Sharma Becomes Fastest to 10K ODI Runs', 'description': 'Indian captain achieved this milestone in just 205 innings.', 'category': 'Cricket', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'ICC'},
+                {'title': 'Jasprit Bumrah Returns to Bowling', 'description': 'Star pacer makes a strong comeback after injury.', 'category': 'Cricket', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Cricket Today'}
             ],
             'football': [
-                {
-                    'title': 'Manchester City Wins Premier League Title',
-                    'description': 'City secured their third consecutive Premier League title with a dominant performance this season.',
-                    'category': 'Football',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'EPL News'
-                },
-                {
-                    'title': 'World Cup 2026: Qualifiers Update',
-                    'description': 'Exciting matches happening in the World Cup qualifiers across all continents this week.',
-                    'category': 'Football',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'FIFA'
-                },
-                {
-                    'title': 'Cristiano Ronaldo Scores 900th Career Goal',
-                    'description': 'The Portuguese legend continues to break records with his incredible goal-scoring ability.',
-                    'category': 'Football',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Football News'
-                },
-                {
-                    'title': 'Liverpool Signs Star Midfielder',
-                    'description': 'Liverpool FC announced the signing of a top midfielder for €80 million from Benfica.',
-                    'category': 'Football',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Transfer News'
-                },
-                {
-                    'title': 'Barcelona Wins El Clasico',
-                    'description': 'Barcelona defeated Real Madrid 3-1 in an exciting El Clasico match at Camp Nou.',
-                    'category': 'Football',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'La Liga'
-                }
+                {'title': 'Manchester City Wins Premier League Title', 'description': 'City secured their third consecutive Premier League title.', 'category': 'Football', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'EPL News'},
+                {'title': 'World Cup 2026: Qualifiers Update', 'description': 'Exciting matches happening in World Cup qualifiers.', 'category': 'Football', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'FIFA'},
+                {'title': 'Cristiano Ronaldo Scores 900th Career Goal', 'description': 'The Portuguese legend continues to break records.', 'category': 'Football', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Football News'},
+                {'title': 'Liverpool Signs Star Midfielder', 'description': 'Liverpool FC announced signing of a top midfielder.', 'category': 'Football', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Transfer News'},
+                {'title': 'Barcelona Wins El Clasico', 'description': 'Barcelona defeated Real Madrid 3-1.', 'category': 'Football', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'La Liga'}
             ],
             'basketball': [
-                {
-                    'title': 'NBA Finals: Lakers vs Celtics',
-                    'description': 'The historic rivalry continues as both teams battle for the championship title.',
-                    'category': 'Basketball',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'NBA'
-                },
-                {
-                    'title': 'LeBron James Extends Record',
-                    'description': 'LeBron becomes the all-time leading scorer in NBA history with a spectacular performance.',
-                    'category': 'Basketball',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'ESPN'
-                },
-                {
-                    'title': 'FIBA World Cup Qualifiers',
-                    'description': 'National teams compete for spots in the upcoming FIBA World Cup in Asia.',
-                    'category': 'Basketball',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'FIBA'
-                }
+                {'title': 'NBA Finals: Lakers vs Celtics', 'description': 'The historic rivalry continues.', 'category': 'Basketball', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'NBA'},
+                {'title': 'LeBron James Extends Record', 'description': 'LeBron becomes all-time leading scorer.', 'category': 'Basketball', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'ESPN'},
+                {'title': 'FIBA World Cup Qualifiers', 'description': 'National teams compete for spots.', 'category': 'Basketball', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'FIBA'}
             ],
             'tennis': [
-                {
-                    'title': 'Novak Djokovic Wins Wimbledon',
-                    'description': 'Djokovic secures his 24th Grand Slam title with a commanding victory in the final.',
-                    'category': 'Tennis',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'ATP Tour'
-                },
-                {
-                    'title': 'Coco Gauff Rising Star',
-                    'description': 'Young American tennis star continues to impress with her powerful game and technique.',
-                    'category': 'Tennis',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'WTA'
-                },
-                {
-                    'title': 'US Open 2026 Preview',
-                    'description': 'All eyes on the final Grand Slam of the year as top players prepare for the tournament.',
-                    'category': 'Tennis',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Tennis News'
-                }
+                {'title': 'Novak Djokovic Wins Wimbledon', 'description': 'Djokovic secures his 24th Grand Slam title.', 'category': 'Tennis', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'ATP Tour'},
+                {'title': 'Coco Gauff Rising Star', 'description': 'Young American continues to impress.', 'category': 'Tennis', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'WTA'},
+                {'title': 'US Open 2026 Preview', 'description': 'Final Grand Slam of the year.', 'category': 'Tennis', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Tennis News'}
             ],
             'f1': [
-                {
-                    'title': 'Max Verstappen Wins Monaco GP',
-                    'description': 'Red Bull driver extends his championship lead with a masterclass performance in Monaco.',
-                    'category': 'F1 Racing',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'F1'
-                },
-                {
-                    'title': 'Lewis Hamilton Signs New Contract',
-                    'description': 'Seven-time world champion extends his stay with Mercedes for another 2 years.',
-                    'category': 'F1 Racing',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Motorsport'
-                },
-                {
-                    'title': 'Audi Joins F1 in 2026',
-                    'description': 'German manufacturer Audi officially enters Formula 1 with a new power unit.',
-                    'category': 'F1 Racing',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'F1 News'
-                }
+                {'title': 'Max Verstappen Wins Monaco GP', 'description': 'Red Bull driver extends championship lead.', 'category': 'F1 Racing', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'F1'},
+                {'title': 'Lewis Hamilton Signs New Contract', 'description': 'Seven-time champion extends stay with Mercedes.', 'category': 'F1 Racing', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Motorsport'},
+                {'title': 'Audi Joins F1 in 2026', 'description': 'German manufacturer officially enters F1.', 'category': 'F1 Racing', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'F1 News'}
             ],
             'badminton': [
-                {
-                    'title': 'PV Sindhu Wins Indonesia Open',
-                    'description': 'Indian shuttler PV Sindhu wins her first title of the season in spectacular fashion.',
-                    'category': 'Badminton',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'BWF'
-                },
-                {
-                    'title': 'Viktor Axelsen Dominates Badminton',
-                    'description': 'World No. 1 continues his incredible run with 5 consecutive tournament wins.',
-                    'category': 'Badminton',
-                    'date': datetime.now().strftime('%d %B, %Y'),
-                    'source': 'Badminton News'
-                }
+                {'title': 'PV Sindhu Wins Indonesia Open', 'description': 'Indian shuttler wins first title of the season.', 'category': 'Badminton', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'BWF'},
+                {'title': 'Viktor Axelsen Dominates Badminton', 'description': 'World No. 1 continues incredible run.', 'category': 'Badminton', 'date': datetime.now().strftime('%d %B, %Y'), 'source': 'Badminton News'}
             ]
         }
         
-        self.sports_list = list(self.news.keys())
         self.sport_emojis = {
             'cricket': '🏏',
             'football': '⚽',
@@ -200,13 +69,11 @@ class SportsNewsDB:
         }
         
     def get_news_by_sport(self, sport):
-        """Get news for a specific sport"""
         if sport.lower() in self.news:
             return self.news[sport.lower()]
         return []
     
     def get_all_news(self, limit=8):
-        """Get all news items"""
         all_news = []
         for sport, items in self.news.items():
             all_news.extend(items)
@@ -214,12 +81,10 @@ class SportsNewsDB:
         return all_news[:limit]
     
     def get_latest_news(self, count=5):
-        """Get latest news (simulated)"""
         all_news = self.get_all_news(count * 2)
         return all_news[:count]
     
     def search_news(self, query):
-        """Search news by keyword"""
         results = []
         query = query.lower()
         for sport, items in self.news.items():
@@ -228,24 +93,15 @@ class SportsNewsDB:
                     results.append(item)
         return results
 
-# ==================== BOT HANDLERS ====================
-
 # Initialize news database
 news_db = SportsNewsDB()
-
-# Store user data (in memory - resets on restart)
 user_data = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Send a welcome message when /start is issued"""
     user = update.effective_user
     
-    # Initialize user data
     if user.id not in user_data:
-        user_data[user.id] = {
-            'favorites': [],
-            'preferences': {'sport': 'all', 'notifications': False}
-        }
+        user_data[user.id] = {'favorites': [], 'preferences': {'sport': 'all', 'notifications': False}}
     
     keyboard = [
         [InlineKeyboardButton("🏏 Cricket", callback_data='sport_cricket'),
@@ -268,18 +124,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Use /latest for recent updates\n"
         "• Add favorites with /fav [news title]\n"
         "• Search with /search [keyword]\n\n"
-        "🌟 *Available Sports:* Cricket, Football, Basketball, Tennis, F1, Badminton\n\n"
-        f"📊 *Users Active:* {len(user_data)}"
+        "🌟 *Available Sports:* Cricket, Football, Basketball, Tennis, F1, Badminton"
     )
     
-    await update.message.reply_text(
-        welcome_text,
-        parse_mode='Markdown',
-        reply_markup=reply_markup
-    )
+    await update.message.reply_text(welcome_text, parse_mode='Markdown', reply_markup=reply_markup)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Send a help message when /help is issued"""
     help_text = """
 📚 *Sports News Bot Help*
 
@@ -292,26 +142,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /favorites - View your favorites
 /search [keyword] - Search news
 /sport [sport] - Get sport-specific news
-/settings - Configure preferences
 /about - About this bot
 
 *Sports Available:*
-🏏 Cricket
-⚽ Football
-🏀 Basketball
-🎾 Tennis
-🏎️ F1 Racing
-🏸 Badminton
-
-*Tips:*
-• Click on sport buttons for instant news
-• Save favorites for quick access
-• Use search to find specific news
+🏏 Cricket ⚽ Football 🏀 Basketball
+🎾 Tennis 🏎️ F1 Racing 🏸 Badminton
     """
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
 async def latest_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Get the latest sports news"""
     news_items = news_db.get_latest_news(5)
     
     if not news_items:
@@ -324,12 +163,9 @@ async def latest_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += f"📝 {item['description'][:150]}...\n"
         message += f"📅 {item['date']} | 📌 {item['category']}\n\n"
     
-    message += "Use /search to find specific news"
-    
     await update.message.reply_text(message, parse_mode='Markdown')
 
 async def popular_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Get popular/most viewed news"""
     news_items = news_db.get_all_news(5)
     
     message = "🔥 *Popular Sports News*\n" + "="*30 + "\n\n"
@@ -341,7 +177,6 @@ async def popular_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message, parse_mode='Markdown')
 
 async def show_sport_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show news for a specific sport"""
     query = update.callback_query
     await query.answer()
     
@@ -365,73 +200,41 @@ async def show_sport_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for i, item in enumerate(news_items[:5], 1):
         message += f"*{i}. {item['title']}*\n"
         message += f"📝 {item['description'][:120]}...\n"
-        message += f"📅 {item['date']} | 📌 {item['category']}\n"
-        message += f"💡 /fav {item['title'][:30]}\n\n"
+        message += f"📅 {item['date']} | 📌 {item['category']}\n\n"
     
     keyboard = [
         [InlineKeyboardButton("🔄 Refresh", callback_data=f'refresh_{sport}')],
-        [InlineKeyboardButton("⭐ Add to Favorites", callback_data=f'fav_{sport}')],
         [InlineKeyboardButton("🔙 Back to Menu", callback_data='back_menu')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(
-        message,
-        parse_mode='Markdown',
-        reply_markup=reply_markup
-    )
+    await query.edit_message_text(message, parse_mode='Markdown', reply_markup=reply_markup)
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle button presses"""
     query = update.callback_query
     await query.answer()
     
     if query.data.startswith('sport_'):
         await show_sport_news(update, context)
-    
     elif query.data.startswith('refresh_'):
         await show_sport_news(update, context)
-    
     elif query.data == 'back_menu':
         await start(update, context)
-    
     elif query.data == 'show_favorites':
-        await view_favorites(update, context)
-    
+        user_id = update.effective_user.id
+        if user_id not in user_data or not user_data[user_id]['favorites']:
+            await query.message.reply_text("⭐ You have no favorites yet.")
+        else:
+            message = "⭐ *Your Favorites*\n" + "="*30 + "\n\n"
+            for i, title in enumerate(user_data[user_id]['favorites'][:10], 1):
+                message += f"{i}. {title}\n"
+            await query.message.reply_text(message, parse_mode='Markdown')
     elif query.data == 'search_news':
-        await query.message.reply_text(
-            "🔍 *Search News*\n\n"
-            "Type /search [your keyword]\n"
-            "Example: /search world cup",
-            parse_mode='Markdown'
-        )
-    
-    elif query.data.startswith('fav_'):
-        sport = query.data.replace('fav_', '')
-        news_items = news_db.get_news_by_sport(sport)
-        
-        if news_items:
-            item = news_items[0]
-            user_id = update.effective_user.id
-            if user_id not in user_data:
-                user_data[user_id] = {'favorites': [], 'preferences': {}}
-            if item['title'] not in user_data[user_id]['favorites']:
-                user_data[user_id]['favorites'].append(item['title'])
-                await query.message.reply_text(
-                    f"✅ Added to favorites:\n{item['title']}"
-                )
-            else:
-                await query.message.reply_text(
-                    f"⚠️ Already in favorites:\n{item['title']}"
-                )
+        await query.message.reply_text("🔍 Type /search [your keyword]")
 
 async def search_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Search for news by keyword"""
     if not context.args:
-        await update.message.reply_text(
-            "🔍 Please provide a search term.\n"
-            "Example: /search world cup"
-        )
+        await update.message.reply_text("🔍 Please provide a search term.\nExample: /search world cup")
         return
     
     query = ' '.join(context.args)
@@ -450,12 +253,8 @@ async def search_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message, parse_mode='Markdown')
 
 async def add_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Add a news item to favorites"""
     if not context.args:
-        await update.message.reply_text(
-            "⭐ Please provide a news title to favorite.\n"
-            "Example: /fav World Cup"
-        )
+        await update.message.reply_text("⭐ Please provide a news title.\nExample: /fav World Cup")
         return
     
     query = ' '.join(context.args).lower()
@@ -476,141 +275,52 @@ async def add_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if found:
         if found['title'] not in user_data[user_id]['favorites']:
             user_data[user_id]['favorites'].append(found['title'])
-            await update.message.reply_text(
-                f"⭐ Added to favorites:\n{found['title']}"
-            )
+            await update.message.reply_text(f"⭐ Added to favorites:\n{found['title']}")
         else:
-            await update.message.reply_text("This news is already in your favorites!")
+            await update.message.reply_text("Already in favorites!")
     else:
         await update.message.reply_text("No news found with that title.")
 
 async def view_favorites(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """View user's favorites"""
     user_id = update.effective_user.id
     
     if user_id not in user_data or not user_data[user_id]['favorites']:
-        message = "⭐ *Your Favorites*\n\nYou have no favorites yet."
-    else:
-        message = "⭐ *Your Favorites*\n" + "="*30 + "\n\n"
-        for i, title in enumerate(user_data[user_id]['favorites'][:10], 1):
-            message += f"{i}. {title}\n"
-    
-    if update.callback_query:
-        await update.callback_query.message.reply_text(message, parse_mode='Markdown')
-    else:
-        await update.message.reply_text(message, parse_mode='Markdown')
-
-async def remove_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Remove a favorite"""
-    if not context.args:
-        await update.message.reply_text("Usage: /removefav [news title]")
+        await update.message.reply_text("⭐ You have no favorites yet.")
         return
     
-    query = ' '.join(context.args).lower()
-    user_id = update.effective_user.id
-    
-    if user_id in user_data:
-        for fav in user_data[user_id]['favorites']:
-            if query in fav.lower():
-                user_data[user_id]['favorites'].remove(fav)
-                await update.message.reply_text(f"✅ Removed: {fav}")
-                return
-    
-    await update.message.reply_text("Favorite not found.")
-
-async def sport_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Get news for a specific sport via command"""
-    if not context.args:
-        await update.message.reply_text(
-            "Please specify a sport.\n"
-            "Available: cricket, football, basketball, tennis, f1, badminton"
-        )
-        return
-    
-    sport = context.args[0].lower()
-    news_items = news_db.get_news_by_sport(sport)
-    
-    if not news_items:
-        await update.message.reply_text(f"No news found for '{sport}'")
-        return
-    
-    emoji = news_db.sport_emojis.get(sport, '📌')
-    name = news_db.sport_names.get(sport, sport.title())
-    message = f"{emoji} *{name} News*\n" + "="*30 + "\n\n"
-    
-    for i, item in enumerate(news_items[:5], 1):
-        message += f"*{i}. {item['title']}*\n"
-        message += f"📝 {item['description'][:120]}...\n"
-        message += f"📅 {item['date']} | 📌 {item['category']}\n\n"
+    message = "⭐ *Your Favorites*\n" + "="*30 + "\n\n"
+    for i, title in enumerate(user_data[user_id]['favorites'][:10], 1):
+        message += f"{i}. {title}\n"
     
     await update.message.reply_text(message, parse_mode='Markdown')
 
-async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """User settings"""
-    user_id = update.effective_user.id
-    
-    if user_id not in user_data:
-        user_data[user_id] = {'favorites': [], 'preferences': {'sport': 'all', 'notifications': False}}
-    
-    pref = user_data[user_id].get('preferences', {'sport': 'all', 'notifications': False})
-    
-    keyboard = [
-        [InlineKeyboardButton(
-            f"🔔 Notifications: {'ON' if pref.get('notifications', False) else 'OFF'}",
-            callback_data='toggle_notifications'
-        )],
-        [InlineKeyboardButton("🗑️ Clear All Favorites", callback_data='clear_favorites')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        f"⚙️ *Settings*\n\n"
-        f"Default Sport: {pref.get('sport', 'all').title()}\n"
-        f"Notifications: {'✅ ON' if pref.get('notifications', False) else '❌ OFF'}\n"
-        f"Favorites: {len(user_data[user_id].get('favorites', []))}\n\n"
-        "Choose an option:",
-        parse_mode='Markdown',
-        reply_markup=reply_markup
-    )
-
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """About the bot"""
-    about_text = f"""
-🤖 *About Sports News Bot*
+    about_text = """
+🤖 *Sports News Bot*
 
 Version: 1.0.0
 Created: 2026
 
 *Features:*
-• Multi-sport news coverage
+• 6 Sports categories
 • Favorites system
 • Smart search
 • No API required
 
-*Sports Available:*
+*Sports:*
 🏏 Cricket ⚽ Football 🏀 Basketball
 🎾 Tennis 🏎️ F1 Racing 🏸 Badminton
 
-*Privacy:* No data stored permanently
-
-👥 Active Users: {len(user_data)}
+Made with ❤️ for sports fans
     """
-    
     await update.message.reply_text(about_text, parse_mode='Markdown')
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle errors"""
     logger.warning(f"Update {update} caused error {context.error}")
     if update and update.effective_message:
-        await update.effective_message.reply_text(
-            "⚠️ An error occurred. Please try again or use /help."
-        )
-
-# ==================== MAIN FUNCTION ====================
+        await update.effective_message.reply_text("⚠️ An error occurred. Please try again.")
 
 def main():
-    """Start the bot"""
-    # Get token from environment variable
     token = os.environ.get('TELEGRAM_BOT_TOKEN')
     
     if not token:
@@ -620,31 +330,32 @@ def main():
     
     logger.info("✅ Token found! Starting bot...")
     
-    # Create application
-    application = Application.builder().token(token).build()
-    
-    # Add command handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("latest", latest_news))
-    application.add_handler(CommandHandler("popular", popular_news))
-    application.add_handler(CommandHandler("search", search_news))
-    application.add_handler(CommandHandler("fav", add_favorite))
-    application.add_handler(CommandHandler("favorites", view_favorites))
-    application.add_handler(CommandHandler("removefav", remove_favorite))
-    application.add_handler(CommandHandler("sport", sport_command))
-    application.add_handler(CommandHandler("settings", settings))
-    application.add_handler(CommandHandler("about", about))
-    
-    # Add callback query handler for buttons
-    application.add_handler(CallbackQueryHandler(button_handler))
-    
-    # Add error handler
-    application.add_error_handler(error_handler)
-    
-    # Start the bot
-    logger.info("🏆 Sports News Bot is running...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    try:
+        # Create application
+        application = Application.builder().token(token).build()
+        
+        # Add command handlers
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("latest", latest_news))
+        application.add_handler(CommandHandler("popular", popular_news))
+        application.add_handler(CommandHandler("search", search_news))
+        application.add_handler(CommandHandler("fav", add_favorite))
+        application.add_handler(CommandHandler("favorites", view_favorites))
+        application.add_handler(CommandHandler("about", about))
+        
+        # Add callback query handler for buttons
+        application.add_handler(CallbackQueryHandler(button_handler))
+        
+        # Add error handler
+        application.add_error_handler(error_handler)
+        
+        # Start the bot
+        logger.info("🏆 Sports News Bot is running...")
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        
+    except Exception as e:
+        logger.error(f"Error starting bot: {e}")
 
 if __name__ == '__main__':
     main()
