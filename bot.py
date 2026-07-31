@@ -1,9 +1,11 @@
+
 import os
 import random
 import logging
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+import asyncio
 
 # Enable logging
 logging.basicConfig(
@@ -267,10 +269,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Add favorites with /fav [news title]\n"
         "• Search with /search [keyword]\n\n"
         "🌟 *Available Sports:* Cricket, Football, Basketball, Tennis, F1, Badminton\n\n"
-        "📊 *Stats:* {}/{} users active".format(
-            len(user_data), 
-            len(user_data)
-        )
+        f"📊 *Users Active:* {len(user_data)}"
     )
     
     await update.message.reply_text(
@@ -308,10 +307,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • Click on sport buttons for instant news
 • Save favorites for quick access
 • Use search to find specific news
-
-*Privacy Policy:*
-No personal data is stored permanently.
-Favorites are stored temporarily and reset on bot restart.
     """
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
@@ -320,7 +315,7 @@ async def latest_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
     news_items = news_db.get_latest_news(5)
     
     if not news_items:
-        await update.message.reply_text("No news available at the moment. Please check back later.")
+        await update.message.reply_text("No news available at the moment.")
         return
     
     message = "📰 *Latest Sports News*\n" + "="*30 + "\n\n"
@@ -395,8 +390,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_sport_news(update, context)
     
     elif query.data.startswith('refresh_'):
-        sport = query.data.replace('refresh_', '')
-        # Re-fetch and show news
         await show_sport_news(update, context)
     
     elif query.data == 'back_menu':
@@ -409,8 +402,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text(
             "🔍 *Search News*\n\n"
             "Type /search [your keyword]\n"
-            "Example: /search world cup\n"
-            "Example: /search cricket",
+            "Example: /search world cup",
             parse_mode='Markdown'
         )
     
@@ -438,8 +430,7 @@ async def search_news(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
             "🔍 Please provide a search term.\n"
-            "Example: /search world cup\n"
-            "Example: /search cricket"
+            "Example: /search world cup"
         )
         return
     
@@ -463,19 +454,16 @@ async def add_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
             "⭐ Please provide a news title to favorite.\n"
-            "Example: /fav World Cup\n"
-            "Example: /fav cricket"
+            "Example: /fav World Cup"
         )
         return
     
     query = ' '.join(context.args).lower()
     user_id = update.effective_user.id
     
-    # Initialize user data if needed
     if user_id not in user_data:
         user_data[user_id] = {'favorites': [], 'preferences': {}}
     
-    # Find news item
     found = None
     for sport, items in news_db.news.items():
         for item in items:
@@ -494,19 +482,18 @@ async def add_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await update.message.reply_text("This news is already in your favorites!")
     else:
-        await update.message.reply_text("No news found with that title. Try a different keyword.")
+        await update.message.reply_text("No news found with that title.")
 
 async def view_favorites(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """View user's favorites"""
     user_id = update.effective_user.id
     
     if user_id not in user_data or not user_data[user_id]['favorites']:
-        message = "⭐ *Your Favorites*\n\nYou have no favorites yet.\nUse /fav [news title] to add."
+        message = "⭐ *Your Favorites*\n\nYou have no favorites yet."
     else:
         message = "⭐ *Your Favorites*\n" + "="*30 + "\n\n"
         for i, title in enumerate(user_data[user_id]['favorites'][:10], 1):
             message += f"{i}. {title}\n"
-        message += "\nUse /removefav [title] to remove"
     
     if update.callback_query:
         await update.callback_query.message.reply_text(message, parse_mode='Markdown')
@@ -529,15 +516,14 @@ async def remove_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text(f"✅ Removed: {fav}")
                 return
     
-    await update.message.reply_text("Favorite not found. Use /favorites to see your list.")
+    await update.message.reply_text("Favorite not found.")
 
 async def sport_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Get news for a specific sport via command"""
     if not context.args:
         await update.message.reply_text(
             "Please specify a sport.\n"
-            "Available: cricket, football, basketball, tennis, f1, badminton\n"
-            "Example: /sport cricket"
+            "Available: cricket, football, basketball, tennis, f1, badminton"
         )
         return
     
@@ -573,8 +559,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🔔 Notifications: {'ON' if pref.get('notifications', False) else 'OFF'}",
             callback_data='toggle_notifications'
         )],
-        [InlineKeyboardButton("🗑️ Clear All Favorites", callback_data='clear_favorites')],
-        [InlineKeyboardButton("📊 Stats", callback_data='show_stats')]
+        [InlineKeyboardButton("🗑️ Clear All Favorites", callback_data='clear_favorites')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -590,7 +575,7 @@ async def settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """About the bot"""
-    about_text = """
+    about_text = f"""
 🤖 *About Sports News Bot*
 
 Version: 1.0.0
@@ -600,25 +585,16 @@ Created: 2026
 • Multi-sport news coverage
 • Favorites system
 • Smart search
-• User preferences
 • No API required
 
 *Sports Available:*
-🏏 Cricket
-⚽ Football
-🏀 Basketball
-🎾 Tennis
-🏎️ F1 Racing
-🏸 Badminton
+🏏 Cricket ⚽ Football 🏀 Basketball
+🎾 Tennis 🏎️ F1 Racing 🏸 Badminton
 
-*Data Source:* Self-contained database
 *Privacy:* No data stored permanently
-*Uptime:* 99.9%
 
-Made with ❤️ for sports fans
-
-👥 Active Users: {}
-    """.format(len(user_data))
+👥 Active Users: {len(user_data)}
+    """
     
     await update.message.reply_text(about_text, parse_mode='Markdown')
 
@@ -630,29 +606,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "⚠️ An error occurred. Please try again or use /help."
         )
 
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show bot statistics"""
-    total_news = sum(len(items) for items in news_db.news.values())
-    total_sports = len(news_db.sports_list)
-    total_users = len(user_data)
-    
-    stats_text = f"""
-📊 *Bot Statistics*
-
-👥 Total Users: {total_users}
-📰 Total News Items: {total_news}
-🏆 Sports Covered: {total_sports}
-⭐ Total Favorites: {sum(len(data.get('favorites', [])) for data in user_data.values())}
-
-*Sports Breakdown:*
-"""
-    for sport in news_db.sports_list:
-        count = len(news_db.news[sport])
-        emoji = news_db.sport_emojis.get(sport, '📌')
-        stats_text += f"{emoji} {sport.title()}: {count} articles\n"
-    
-    await update.message.reply_text(stats_text, parse_mode='Markdown')
-
 # ==================== MAIN FUNCTION ====================
 
 def main():
@@ -661,8 +614,11 @@ def main():
     token = os.environ.get('TELEGRAM_BOT_TOKEN')
     
     if not token:
-        logger.error("No token found! Please set TELEGRAM_BOT_TOKEN environment variable.")
+        logger.error("❌ TELEGRAM_BOT_TOKEN not set!")
+        logger.error("Please add environment variable: TELEGRAM_BOT_TOKEN")
         return
+    
+    logger.info("✅ Token found! Starting bot...")
     
     # Create application
     application = Application.builder().token(token).build()
@@ -679,7 +635,6 @@ def main():
     application.add_handler(CommandHandler("sport", sport_command))
     application.add_handler(CommandHandler("settings", settings))
     application.add_handler(CommandHandler("about", about))
-    application.add_handler(CommandHandler("stats", stats))
     
     # Add callback query handler for buttons
     application.add_handler(CallbackQueryHandler(button_handler))
